@@ -1,13 +1,587 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>DICE Model</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICE Model • Analisador de Projetos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* Painel Esquerdo */
+        .panel-left {
+            flex: 1;
+            min-width: 340px;
+            background: #f9fafb;
+            padding: 32px;
+            border-right: 1px solid #e5e7eb;
+            border-radius: 24px 0 0 24px;
+        }
+
+        .panel-right {
+            flex: 2;
+            min-width: 600px;
+            padding: 32px;
+            background: white;
+            border-radius: 0 24px 24px 0;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #111827;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge {
+            background: #0b8a7a;
+            color: white;
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-weight: 500;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 15px;
+            border-left: 4px solid #0b8a7a;
+            padding-left: 16px;
+            line-height: 1.5;
+        }
+
+        /* Cards de Input */
+        .input-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-item label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-item label span {
+            background: #f3f4f6;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4b5563;
+            font-weight: 700;
+        }
+
+        .input-item select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .input-item select:hover {
+            border-color: #0b8a7a;
+        }
+
+        .input-item select:focus {
+            outline: none;
+            border-color: #0b8a7a;
+            box-shadow: 0 0 0 3px rgba(11, 138, 122, 0.1);
+        }
+
+        /* Botões */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #0b8a7a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0a7466;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(11, 138, 122, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        /* Resultado */
+        .result-card {
+            background: linear-gradient(135deg, #0b8a7a, #0a7466);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 24px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .result-label {
+            font-size: 14px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .result-score {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 8px 0 4px;
+        }
+
+        .result-zone {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        .result-message {
+            font-size: 15px;
+            line-height: 1.6;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Gráfico */
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h2 {
+            color: #111827;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            background: white;
+        }
+
+        /* Legenda */
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 6px;
+        }
+
+        .dot-win { background: #0b8a7a; }
+        .dot-worry { background: #d8a300; }
+        .dot-woe { background: #c0392b; }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .panel-left, .panel-right {
+                min-width: auto;
+                border-radius: 24px;
+            }
+            .panel-left {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>DICE Model - Teste</h1>
-    <p>Se você está vendo isso, o GitHub Pages está funcionando!</p>
+    <div class="container">
+        <!-- Painel Esquerdo -->
+        <div class="panel-left">
+            <h1>
+                🎲 DICE Model
+                <span class="badge">v2.0</span>
+            </h1>
+            <div class="subtitle">
+                Preencha os fatores (1 a 4) para analisar a probabilidade de sucesso do projeto
+            </div>
+
+            <div class="input-card">
+                <div class="input-grid">
+                    <div class="input-item">
+                        <label><span>D</span> Duração</label>
+                        <select id="D">
+                            <option value="1">1 - Muito curta</option>
+                            <option value="2" selected>2 - Curta</option>
+                            <option value="3">3 - Longa</option>
+                            <option value="4">4 - Muito longa</option>
+                        </select>
+                    </div>
+
+                    <div class="input-item">
+                        <label><span>I</span> Integridade</label>
+                        <select id="I">
+                            <option value="1">1 - Muito alta</option>
+                            <option value="2" selected>2 - Alta</option>
+                            <option value="3">3 - Baixa</option>
+                            <option value="4">4 - Muito baixa</option>
+                        </select>
+                    </div>
+
+                    <div class="input-item">
+                        <label><span>C1</span> Comprometimento</label>
+                        <select id="C1">
+                            <option value="1">1 - Muito alto</option>
+                            <option value="2" selected>2 - Alto</option>
+                            <option value="3">3 - Baixo</option>
+                            <option value="4">4 - Muito baixo</option>
+                        </select>
+                    </div>
+
+                    <div class="input-item">
+                        <label><span>C2</span> Esforço</label>
+                        <select id="C2">
+                            <option value="1">1 - Muito baixo</option>
+                            <option value="2" selected>2 - Baixo</option>
+                            <option value="3">3 - Alto</option>
+                            <option value="4">4 - Muito alto</option>
+                        </select>
+                    </div>
+
+                    <div class="input-item" style="grid-column: span 2;">
+                        <label><span>E</span> Supervisão</label>
+                        <select id="E">
+                            <option value="1">1 - Muito baixa</option>
+                            <option value="2" selected>2 - Baixa</option>
+                            <option value="3">3 - Alta</option>
+                            <option value="4">4 - Muito alta</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="atualizarGrafico()">
+                <span>🔄</span> Atualizar Gráfico
+            </button>
+            
+            <button class="btn btn-secondary" onclick="salvarPNG()">
+                <span>📸</span> Salvar como PNG
+            </button>
+
+            <!-- Card de Resultado -->
+            <div class="result-card" id="resultCard">
+                <div class="result-label">SCORE DICE</div>
+                <div class="result-score" id="score">14</div>
+                <div class="result-zone" id="zone">WORRY</div>
+                <div class="result-message" id="message">
+                    Zona de atenção. Atue nos fatores para reduzir o escore (meta: 13 ou abaixo).
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Direito -->
+        <div class="panel-right">
+            <div class="chart-header">
+                <h2>📊 Visualização DICE</h2>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="diceChart" width="800" height="350"></canvas>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-dot dot-win"></div>
+                        <span>WIN (7-13)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-dot dot-worry"></div>
+                        <span>WORRY (14-17)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-dot dot-woe"></div>
+                        <span>WOE (18-28)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        console.log("Site funcionando!");
+        // Elementos do DOM
+        const D = document.getElementById('D');
+        const I = document.getElementById('I');
+        const C1 = document.getElementById('C1');
+        const C2 = document.getElementById('C2');
+        const E = document.getElementById('E');
+        const canvas = document.getElementById('diceChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Cores
+        const cores = {
+            win: '#0b8a7a',
+            worry: '#d8a300',
+            woe: '#c0392b'
+        };
+
+        // Calcular score DICE
+        function calcularScore() {
+            return parseInt(D.value) + 
+                   (2 * parseInt(I.value)) + 
+                   (2 * parseInt(C1.value)) + 
+                   parseInt(C2.value) + 
+                   parseInt(E.value);
+        }
+
+        // Determinar zona
+        function determinarZona(score) {
+            if (score <= 13) return 'WIN';
+            if (score <= 17) return 'WORRY';
+            return 'WOE';
+        }
+
+        // Obter mensagem
+        function getMensagem(zona) {
+            const mensagens = {
+                'WIN': '✅ Alta probabilidade de sucesso! Mantenha a gestão atual e continue monitorando.',
+                'WORRY': '⚠️ Zona de atenção! Reduza o escore agindo nos fatores com pontuação mais alta.',
+                'WOE': '🔴 Zona crítica! Reavalie o projeto. Necessárias ações corretivas fortes.'
+            };
+            return mensagens[zona];
+        }
+
+        // Atualizar resultado
+        function atualizarResultado() {
+            const score = calcularScore();
+            const zona = determinarZona(score);
+            const mensagem = getMensagem(zona);
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('zone').textContent = zona;
+            document.getElementById('message').textContent = mensagem;
+            
+            const resultCard = document.getElementById('resultCard');
+            let cor = cores.win;
+            if (zona === 'WORRY') cor = cores.worry;
+            if (zona === 'WOE') cor = cores.woe;
+            
+            resultCard.style.background = `linear-gradient(135deg, ${cor}, ${ajustarCor(cor, -20)})`;
+        }
+
+        // Ajustar cor (simplificado)
+        function ajustarCor(cor, percent) {
+            return cor; // Mantém a mesma cor por simplicidade
+        }
+
+        // Desenhar gráfico
+        function desenharGrafico() {
+            const score = calcularScore();
+            
+            // Limpar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Configurações
+            const inicioX = 70;
+            const fimX = 730;
+            const larguraTotal = fimX - inicioX;
+            const pontosPorUnidade = larguraTotal / 21; // 21 unidades (7-28)
+            
+            // Desenhar áreas
+            // WIN (7-13)
+            ctx.fillStyle = cores.win;
+            ctx.fillRect(inicioX, 50, 6 * pontosPorUnidade, 250);
+            
+            // WORRY (14-17)
+            ctx.fillStyle = cores.worry;
+            ctx.fillRect(inicioX + (6 * pontosPorUnidade), 50, 4 * pontosPorUnidade, 250);
+            
+            // WOE (18-28)
+            ctx.fillStyle = cores.woe;
+            ctx.fillRect(inicioX + (10 * pontosPorUnidade), 50, 11 * pontosPorUnidade, 250);
+            
+            // Linhas divisórias
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            // Linha WIN/WORRY
+            ctx.beginPath();
+            ctx.moveTo(inicioX + (6 * pontosPorUnidade), 50);
+            ctx.lineTo(inicioX + (6 * pontosPorUnidade), 300);
+            ctx.stroke();
+            
+            // Linha WORRY/WOE
+            ctx.beginPath();
+            ctx.moveTo(inicioX + (10 * pontosPorUnidade), 50);
+            ctx.lineTo(inicioX + (10 * pontosPorUnidade), 300);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // Marcador do score
+            const xScore = inicioX + ((score - 7) * pontosPorUnidade);
+            
+            // Círculo
+            ctx.beginPath();
+            ctx.arc(xScore, 175, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Texto do score
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(score, xScore, 175);
+            
+            // Labels das zonas
+            ctx.font = 'bold 20px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 5;
+            
+            ctx.fillText('WIN', inicioX + (3 * pontosPorUnidade), 180);
+            ctx.fillText('WORRY', inicioX + (8 * pontosPorUnidade), 180);
+            ctx.fillText('WOE', inicioX + (15.5 * pontosPorUnidade), 180);
+            
+            ctx.shadowBlur = 0;
+            
+            // Eixo X
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#4b5563';
+            
+            // Valores do eixo
+            for (let i = 7; i <= 28; i+=3) {
+                const x = inicioX + ((i - 7) * pontosPorUnidade);
+                ctx.fillText(i, x - 8, 330);
+            }
+        }
+
+        // Atualizar tudo
+        function atualizarGrafico() {
+            atualizarResultado();
+            desenharGrafico();
+        }
+
+        // Salvar PNG
+        function salvarPNG() {
+            const link = document.createElement('a');
+            link.download = `dice-score-${calcularScore()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Event listeners
+        D.addEventListener('change', atualizarGrafico);
+        I.addEventListener('change', atualizarGrafico);
+        C1.addEventListener('change', atualizarGrafico);
+        C2.addEventListener('change', atualizarGrafico);
+        E.addEventListener('change', atualizarGrafico);
+
+        // Inicializar
+        window.onload = function() {
+            atualizarGrafico();
+        };
     </script>
 </body>
 </html>
