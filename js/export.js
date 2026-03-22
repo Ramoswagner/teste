@@ -1,19 +1,20 @@
 /**
- * js/export.js — Redesign Nível McKinsey/BCG
- * ─────────────────────────────────────────────
- * Princípios de design aplicados:
- * - Capa: flex layout 3 blocos, elimina ~150mm de espaço morto
- * - Fatores: tabela com réguas finas, sem cards, linha compacta
- * - Recomendações: mesma linguagem visual da tabela de fatores
- * - Tipografia: escala precisa por peso e tamanho
- * - Cor: navy primário, gold acento, semânticas para risco
- * - Órfão corrigido: break-inside:avoid só na linha de cabeçalho,
- *   + break-before:avoid no pfooter
- *
- * Depende de: state.js, data.js, calc.js, ui.js (showToast)
- */
 
-'use strict';
+- js/export.js — Redesign Nível McKinsey/BCG
+- ─────────────────────────────────────────────
+- Princípios de design aplicados:
+- - Capa: flex layout 3 blocos, elimina ~150mm de espaço morto
+- - Fatores: tabela com réguas finas, sem cards, linha compacta
+- - Recomendações: mesma linguagem visual da tabela de fatores
+- - Tipografia: escala precisa por peso e tamanho
+- - Cor: navy primário, gold acento, semânticas para risco
+- - Órfão corrigido: break-inside:avoid só na linha de cabeçalho,
+- - break-before:avoid no pfooter
+- 
+- Depende de: state.js, data.js, calc.js, ui.js (showToast)
+  */
+
+‘use strict’;
 
 let _pendingPDFHtml = null;
 
@@ -22,27 +23,27 @@ let _pendingPDFHtml = null;
 // ══════════════════════════════════════════════
 
 function showPopupBanner() {
-  document.getElementById('popupBanner').classList.add('show');
+document.getElementById(‘popupBanner’).classList.add(‘show’);
 }
 
 // eslint-disable-next-line no-unused-vars
 function dismissPopupBanner() {
-  document.getElementById('popupBanner').classList.remove('show');
-  _pendingPDFHtml = null;
+document.getElementById(‘popupBanner’).classList.remove(‘show’);
+_pendingPDFHtml = null;
 }
 
-document.getElementById('popupRetry').addEventListener('click', function () {
-  if (_pendingPDFHtml) _openPrintWindow(_pendingPDFHtml);
+document.getElementById(‘popupRetry’).addEventListener(‘click’, function () {
+if (_pendingPDFHtml) _openPrintWindow(_pendingPDFHtml);
 });
 
 function _openPrintWindow(html) {
-  const win = window.open('', '_blank');
-  if (!win) { showPopupBanner(); return; }
-  dismissPopupBanner();
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  showToast('Abrindo relatório — aguarde o diálogo de impressão...');
+const win = window.open(’’, ‘_blank’);
+if (!win) { showPopupBanner(); return; }
+dismissPopupBanner();
+win.document.open();
+win.document.write(html);
+win.document.close();
+showToast(‘Abrindo relatório — aguarde o diálogo de impressão…’);
 }
 
 // ══════════════════════════════════════════════
@@ -51,20 +52,20 @@ function _openPrintWindow(html) {
 
 // eslint-disable-next-line no-unused-vars
 function savePNG() {
-  const canvas = document.getElementById('diceChart');
-  if (!canvas) return;
-  const transparent = document.getElementById('transparentToggle')?.checked ?? false;
-  const off = document.createElement('canvas');
-  off.width = canvas.width; off.height = canvas.height;
-  const oc = off.getContext('2d');
-  if (!transparent) { oc.fillStyle = '#0B1E33'; oc.fillRect(0, 0, off.width, off.height); }
-  oc.drawImage(canvas, 0, 0);
-  const sc = calcScore();
-  const link = document.createElement('a');
-  link.download = `dice-${zoneLabel(sc).toLowerCase()}-${sc}.png`;
-  link.href = off.toDataURL('image/png');
-  link.click();
-  showToast('PNG exportado com sucesso!');
+const canvas = document.getElementById(‘diceChart’);
+if (!canvas) return;
+const transparent = document.getElementById(‘transparentToggle’)?.checked ?? false;
+const off = document.createElement(‘canvas’);
+off.width = canvas.width; off.height = canvas.height;
+const oc = off.getContext(‘2d’);
+if (!transparent) { oc.fillStyle = ‘#0B1E33’; oc.fillRect(0, 0, off.width, off.height); }
+oc.drawImage(canvas, 0, 0);
+const sc = calcScore();
+const link = document.createElement(‘a’);
+link.download = `dice-${zoneLabel(sc).toLowerCase()}-${sc}.png`;
+link.href = off.toDataURL(‘image/png’);
+link.click();
+showToast(‘PNG exportado com sucesso!’);
 }
 
 // ══════════════════════════════════════════════
@@ -73,41 +74,55 @@ function savePNG() {
 
 // eslint-disable-next-line no-unused-vars
 function exportPDF() {
-  const sc       = calcScore();
-  const z        = zone(sc);
-  const zl       = zoneLabel(sc);
-  const now      = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long',    year:'numeric' });
-  const nowShort = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
-  const ts       = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  const reportId = 'DICE-' + sc + '-' + nowShort.replace(/[^a-zA-Z0-9]/g, '');
+// PASSO 1: abre a janela IMEDIATAMENTE, antes de qualquer processamento.
+// Isso é obrigatório em mobile (Safari iOS, Chrome Android): window.open()
+// deve ser chamado na mesma microtask do gesto do usuário. Se houver
+// qualquer operação entre o clique e a chamada, o popup é bloqueado.
+const win = window.open(’’, ‘_blank’);
+if (!win) { showPopupBanner(); return; }
 
-  const projectName = escapeHtml(
-    document.getElementById('projectName')?.value?.trim() || 'Projeto sem nome'
-  );
+const sc       = calcScore();
+const z        = zone(sc);
+const zl       = zoneLabel(sc);
+const now      = new Date().toLocaleDateString(‘pt-BR’, { day:‘2-digit’, month:‘long’,    year:‘numeric’ });
+const nowShort = new Date().toLocaleDateString(‘pt-BR’, { day:‘2-digit’, month:‘2-digit’, year:‘numeric’ });
+const ts       = new Date().toLocaleTimeString(‘pt-BR’, { hour:‘2-digit’, minute:‘2-digit’ });
+const reportId = ‘DICE-’ + sc + ‘-’ + nowShort.replace(/[^a-zA-Z0-9]/g, ‘’);
 
-  const J = {
-    D:  escapeHtml(document.getElementById('justD')?.value?.trim()  || ''),
-    I:  escapeHtml(document.getElementById('justI')?.value?.trim()  || ''),
-    C1: escapeHtml(document.getElementById('justC1')?.value?.trim() || ''),
-    C2: escapeHtml(document.getElementById('justC2')?.value?.trim() || ''),
-    E:  escapeHtml(document.getElementById('justE')?.value?.trim()  || '')
-  };
+const projectName = escapeHtml(
+document.getElementById(‘projectName’)?.value?.trim() || ‘Projeto sem nome’
+);
 
-  const zc  = ZONE_COLORS[z];
-  const zbg = ZONE_BG[z];
-  const zbd = ZONE_BORDER[z];
+const J = {
+D:  escapeHtml(document.getElementById(‘justD’)?.value?.trim()  || ‘’),
+I:  escapeHtml(document.getElementById(‘justI’)?.value?.trim()  || ‘’),
+C1: escapeHtml(document.getElementById(‘justC1’)?.value?.trim() || ‘’),
+C2: escapeHtml(document.getElementById(‘justC2’)?.value?.trim() || ‘’),
+E:  escapeHtml(document.getElementById(‘justE’)?.value?.trim()  || ‘’)
+};
 
-  const factors = getFactorsForPDF();
+const zc  = ZONE_COLORS[z];
+const zbg = ZONE_BG[z];
+const zbd = ZONE_BORDER[z];
 
-  const html = _assemblePDFDocument({
-    projectName, sc, z, zl, now, nowShort, ts, reportId, zc, zbg, zbd,
-    coverBarsHtml:   _buildCoverBars(factors),
-    factorTableHtml: _buildFactorTable(factors, J),
-    recTableHtml:    _buildRecTable(z, zc)
-  });
+const factors = getFactorsForPDF();
 
-  _pendingPDFHtml = html;
-  _openPrintWindow(html);
+const html = _assemblePDFDocument({
+projectName, sc, z, zl, now, nowShort, ts, reportId, zc, zbg, zbd,
+coverBarsHtml:   _buildCoverBars(factors),
+factorTableHtml: _buildFactorTable(factors, J),
+recTableHtml:    _buildRecTable(z, zc)
+});
+
+// PASSO 2: escreve o HTML na janela já aberta no início da função.
+// Não chamamos mais _openPrintWindow() aqui para evitar abrir 2ª janela.
+dismissPopupBanner();
+win.document.open();
+win.document.write(html);
+win.document.close();
+showToast(‘Abrindo relatório — aguarde o diálogo de impressão…’);
+// Guarda para retry de popup (caso o usuário tente novamente via banner)
+_pendingPDFHtml = html;
 }
 
 // ══════════════════════════════════════════════
@@ -115,68 +130,53 @@ function exportPDF() {
 // ══════════════════════════════════════════════
 
 function _buildCoverBars(factors) {
-  const NAMES  = { D:'Duração', I:'Integridade', C1:'Alta Gestão', C2:'Impactados', E:'Esforço' };
-  const WEIGHT = { D:'', I:' ×2', C1:' ×2', C2:'', E:'' };
-  return factors.map(f => {
-    const pct = Math.round(f.comp / f.max * 100);
-    const col = RISK_COLOR[f.val];
-    return `<tr>
-      <td class="cb-key">${f.key}</td>
-      <td class="cb-track">
-        <div class="cb-track-inner">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div>
-        </div>
-      </td>
-      <td class="cb-val" style="color:${col}">${f.comp}/${f.max}</td>
-      <td class="cb-name">${NAMES[f.key]}${WEIGHT[f.key]}</td>
-    </tr>`;
-  }).join('');
+const NAMES  = { D:‘Duração’, I:‘Integridade’, C1:‘Alta Gestão’, C2:‘Impactados’, E:‘Esforço’ };
+const WEIGHT = { D:’’, I:’ ×2’, C1:’ ×2’, C2:’’, E:’’ };
+return factors.map(f => {
+const pct = Math.round(f.comp / f.max * 100);
+const col = RISK_COLOR[f.val];
+return `<tr> <td class="cb-key">${f.key}</td> <td class="cb-track"> <div class="cb-track-inner"> <div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div> </div> </td> <td class="cb-val" style="color:${col}">${f.comp}/${f.max}</td> <td class="cb-name">${NAMES[f.key]}${WEIGHT[f.key]}</td> </tr>`;
+}).join(’’);
 }
 
 /**
- * Tabela de fatores — design McKinsey:
- * réguas finas, sem cards com background.
- * break-inside:avoid protege APENAS a linha de nome/score —
- * descrição e justificativa quebram livremente (resolve o órfão).
- */
-function _buildFactorTable(factors, J) {
+
+- Tabela de fatores — design McKinsey:
+- réguas finas, sem cards com background.
+- break-inside:avoid protege APENAS a linha de nome/score —
+- descrição e justificativa quebram livremente (resolve o órfão).
+  */
+  function _buildFactorTable(factors, J) {
   const rows = factors.map(f => {
-    const col  = RISK_COLOR[f.val];
-    const pct  = Math.round(f.comp / f.max * 100);
-    const just = J[f.key];
-    return `<tr class="frow">
-      <td class="ftag-cell"><div class="ftag">${f.key}</div></td>
-      <td class="fcontent">
-        <div class="fname-line">
-          <span class="fname">${f.long}</span>
-          <div class="fbar-wrap">
-            <div class="fbar-track">
-              <div class="fbar-fill" style="width:${pct}%;background:${col}"></div>
-            </div>
-          </div>
-          <span class="frisk" style="background:${col}12;color:${col};border:1px solid ${col}40">${RISK_LABEL[f.val]}</span>
-          <span class="fscore" style="color:${col}">${f.comp}<span class="fscore-den">/${f.max}</span></span>
-        </div>
-        <div class="fdesc">${DETAIL[f.key][f.val - 1]}</div>
-        ${just ? `<div class="fjust"><span class="fjust-lbl">Justificativa do gestor</span>${just}</div>` : ''}
-      </td>
-    </tr>`;
-  }).join('');
-  return `<table class="factor-table"><tbody>${rows}</tbody></table>`;
+  const col  = RISK_COLOR[f.val];
+  const pct  = Math.round(f.comp / f.max * 100);
+  const just = J[f.key];
+  return `<tr class="frow">
+  
+     <td class="ftag-cell"><div class="ftag">${f.key}</div></td>
+     <td class="fcontent">
+       <div class="fname-line">
+         <span class="fname">${f.long}</span>
+         <div class="fbar-wrap">
+           <div class="fbar-track">
+             <div class="fbar-fill" style="width:${pct}%;background:${col}"></div>
+           </div>
+         </div>
+         <span class="frisk" style="background:${col}12;color:${col};border:1px solid ${col}40">${RISK_LABEL[f.val]}</span>
+         <span class="fscore" style="color:${col}">${f.comp}<span class="fscore-den">/${f.max}</span></span>
+       </div>
+       <div class="fdesc">${DETAIL[f.key][f.val - 1]}</div>
+       ${just ? `<div class="fjust"><span class="fjust-lbl">Justificativa do gestor</span>${just}</div>` : ''}
+     </td>
+   </tr>`;
+
+}).join(’’);
+return `<table class="factor-table"><tbody>${rows}</tbody></table>`;
 }
 
 function _buildRecTable(z, zc) {
-  const rows = RECS_PDF[z].map(r => `
-    <tr class="rrow">
-      <td class="rnum-cell">
-        <div class="rnum" style="border-color:${zc}50;background:${zc}0d;color:${zc}">${r.n}</div>
-      </td>
-      <td class="rcontent">
-        <div class="rtitle">${r.t}</div>
-        <div class="rtext">${r.d}</div>
-      </td>
-    </tr>`).join('');
-  return `<table class="rec-table"><tbody>${rows}</tbody></table>`;
+const rows = RECS_PDF[z].map(r => ` <tr class="rrow"> <td class="rnum-cell"> <div class="rnum" style="border-color:${zc}50;background:${zc}0d;color:${zc}">${r.n}</div> </td> <td class="rcontent"> <div class="rtitle">${r.t}</div> <div class="rtext">${r.d}</div> </td> </tr>`).join(’’);
+return `<table class="rec-table"><tbody>${rows}</tbody></table>`;
 }
 
 // ══════════════════════════════════════════════
@@ -184,15 +184,16 @@ function _buildRecTable(z, zc) {
 // ══════════════════════════════════════════════
 
 function _assemblePDFDocument(p) {
-  const { projectName, sc, z, zl, now, nowShort, ts, reportId,
-          zc, zbg, zbd, coverBarsHtml, factorTableHtml, recTableHtml } = p;
-  const D  = getFactorValue('D');
-  const I  = getFactorValue('I');
-  const C1 = getFactorValue('C1');
-  const C2 = getFactorValue('C2');
-  const E  = getFactorValue('E');
+const { projectName, sc, z, zl, now, nowShort, ts, reportId,
+zc, zbg, zbd, coverBarsHtml, factorTableHtml, recTableHtml } = p;
+const D  = getFactorValue(‘D’);
+const I  = getFactorValue(‘I’);
+const C1 = getFactorValue(‘C1’);
+const C2 = getFactorValue(‘C2’);
+const E  = getFactorValue(‘E’);
 
-  return `<!DOCTYPE html>
+return `<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -205,50 +206,53 @@ function _assemblePDFDocument(p) {
 <body>
 
 <!-- ═══ CAPA ═══ -->
+
 <div class="cover">
   <div class="cover-bg"></div>
   <div class="cover-inner">
 
-    <!-- Bloco 1: identidade -->
-    <div>
-      <div class="c-eyebrow">DICE Framework · Boston Consulting Group · HBR 2005</div>
-      <div class="c-wordmark">DICE</div>
-      <div class="c-tagline">The Hard Side of Change Management</div>
-      <div class="c-rule"></div>
-      <div class="c-proj-label">Projeto Avaliado</div>
-      <div class="c-proj-name">${projectName}</div>
-    </div>
+```
+<!-- Bloco 1: identidade -->
+<div>
+  <div class="c-eyebrow">DICE Framework · Boston Consulting Group · HBR 2005</div>
+  <div class="c-wordmark">DICE</div>
+  <div class="c-tagline">The Hard Side of Change Management</div>
+  <div class="c-rule"></div>
+  <div class="c-proj-label">Projeto Avaliado</div>
+  <div class="c-proj-name">${projectName}</div>
+</div>
 
-    <!-- Bloco 2: score + barras -->
-    <div>
-      <div class="c-score-row">
-        <div class="c-score-num">${sc}</div>
-        <div class="c-score-right">
-          <div class="c-score-eyebrow">DICE Score</div>
-          <div class="c-zone-pill">${ZONE_LABEL[z]}</div>
-        </div>
-      </div>
-      <table class="cover-bars">${coverBarsHtml}</table>
+<!-- Bloco 2: score + barras -->
+<div>
+  <div class="c-score-row">
+    <div class="c-score-num">${sc}</div>
+    <div class="c-score-right">
+      <div class="c-score-eyebrow">DICE Score</div>
+      <div class="c-zone-pill">${ZONE_LABEL[z]}</div>
     </div>
+  </div>
+  <table class="cover-bars">${coverBarsHtml}</table>
+</div>
 
-    <!-- Bloco 3: rodapé da capa -->
-    <div>
-      <div class="c-foot-rule"></div>
-      <div class="c-foot-row">
-        <div class="c-meta">
-          Wagner Ramos · PMO &amp; BI<br>
-          Gerado em ${now} · ${ts}<br>
-          Sirkin, Keenan &amp; Jackson · HBR 2005 · ID: ${reportId}
-        </div>
-        <div class="c-mono">WR</div>
-      </div>
+<!-- Bloco 3: rodapé da capa -->
+<div>
+  <div class="c-foot-rule"></div>
+  <div class="c-foot-row">
+    <div class="c-meta">
+      Wagner Ramos · PMO &amp; BI<br>
+      Gerado em ${now} · ${ts}<br>
+      Sirkin, Keenan &amp; Jackson · HBR 2005 · ID: ${reportId}
     </div>
+    <div class="c-mono">WR</div>
+  </div>
+</div>
+```
 
   </div>
 </div>
 
-
 <!-- ═══ PÁG 2: Resumo Executivo + Fatores ═══ -->
+
 <div class="page" style="page-break-before:always">
   <div class="pheader">
     <div>
@@ -288,8 +292,8 @@ function _assemblePDFDocument(p) {
 
 </div>
 
-
 <!-- ═══ PÁG 3: Recomendações ═══ -->
+
 <div class="page" style="page-break-before:always">
   <div class="pheader">
     <div>
@@ -325,6 +329,7 @@ function _assemblePDFDocument(p) {
 <!-- Rodapé running — position:fixed em @media print repete em todas as páginas.
      A capa tem z-index:2 e background navy, enterrando visualmente o rodapé na
      página 1. Páginas 2 e 3 têm fundo branco → rodapé sempre visível nelas. -->
+
 <div class="doc-footer">
   <div class="doc-footer-l">DICE Framework &nbsp;·&nbsp; ${projectName} &nbsp;·&nbsp; ${nowShort} &nbsp;·&nbsp; Wagner Ramos — PMO &amp; BI &nbsp;·&nbsp; ID: ${reportId}</div>
   <div class="doc-footer-r">WR</div>
