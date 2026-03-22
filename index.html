@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DICE Model · Analisador BCG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ── Cursor Wagner ── -->
+<div class="co" id="co" aria-hidden="true"></div>
+<div class="ci" id="ci" aria-hidden="true"></div>
+<div class="cdot" id="cdot" aria-hidden="true"></div>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo" aria-hidden="true">
+      <span class="header-logo-fallback">WR</span>
+    </div>
+    <div>
+      <span class="header-title">DICE Model</span>
+      <span class="header-sub">Wagner Ramos · PMO &amp; BI</span>
+    </div>
+  </div>
+  <nav class="header-nav" aria-label="Navegação principal">
+    <button class="tab-btn active" onclick="switchTab('analyzer',event)"
+            aria-controls="view-analyzer" aria-selected="true">Analisador</button>
+    <button class="tab-btn" onclick="switchTab('guide',event)"
+            aria-controls="view-guide" aria-selected="false">Guia de Uso</button>
+  </nav>
+</header>
+
+<div class="app">
+
+  <!-- ══════════════ VIEW: ANALISADOR ══════════════ -->
+  <div class="view active" id="view-analyzer" role="tabpanel">
+    <div class="analyzer-grid">
+
+      <!-- Card de inputs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Fatores de Avaliação</div>
+          <div class="card-heading">Preencha o DICE</div>
+        </div>
+        <div class="card-body">
+
+          <!-- Nome do projeto -->
+          <div class="project-name-row">
+            <label class="project-name-label" for="projectName">Nome do Projeto</label>
+            <input class="project-name-input" id="projectName" type="text"
+                   placeholder="Ex: Implantação ERP — Módulo Financeiro" maxlength="80">
+          </div>
+
+          <div class="factor-list">
+
+            <!-- ── D ── -->
+            <div class="factor-row">
+              <div class="factor-label">
+                <span class="factor-tag" aria-hidden="true">D</span>
+                <span>Duração entre marcos</span>
+                <span class="factor-desc">intervalo / prazo</span>
+              </div>
+              <div class="factor-options" data-factor="D" role="radiogroup" aria-label="Duração entre marcos de revisão">
+                <button class="opt-btn selected" data-val="1" onclick="selectFactor(this)" role="radio" aria-checked="true">
+                  <span class="opt-num">1</span><span class="opt-label">&lt; 2 meses</span>
+                  <div class="tip" role="tooltip"><strong>Ótimo (1pt)</strong> — Revisões em menos de 2 meses. Permite detecção precoce de riscos.</div>
+                </button>
+                <button class="opt-btn" data-val="2" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">2</span><span class="opt-label">2–4 meses</span>
+                  <div class="tip" role="tooltip"><strong>Razoável (2pts)</strong> — Intervalo adequado para projetos de complexidade moderada.</div>
+                </button>
+                <button class="opt-btn" data-val="3" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">3</span><span class="opt-label">4–8 meses</span>
+                  <div class="tip" role="tooltip"><strong>Risco elevado (3pts)</strong> — Problemas podem acumular sem percepção da liderança. Subdivida os marcos.</div>
+                </button>
+                <button class="opt-btn" data-val="4" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">4</span><span class="opt-label">&gt; 8 meses</span>
+                  <div class="tip" role="tooltip"><strong>Crítico (4pts)</strong> — O BCG identificou que o risco aumenta exponencialmente neste intervalo.</div>
+                </button>
+              </div>
+              <div class="factor-justification" id="just-D">
+                <textarea class="factor-just-input" id="justD" rows="2"
+                          placeholder="Justificativa: ex. revisões quinzenais definidas no plano de projeto…"
+                          aria-label="Justificativa para fator D"></textarea>
+              </div>
+            </div>
+
+            <!-- ── I ── -->
+            <div class="factor-row">
+              <div class="factor-label">
+                <span class="factor-tag" aria-hidden="true">I</span>
+                <span>Integridade da equipe</span>
+                <span class="factor-desc">× 2 no cálculo</span>
+              </div>
+              <div class="factor-options" data-factor="I" role="radiogroup" aria-label="Integridade da equipe do projeto">
+                <button class="opt-btn selected" data-val="1" onclick="selectFactor(this)" role="radio" aria-checked="true">
+                  <span class="opt-num">1</span><span class="opt-label">Muito boa</span>
+                  <div class="tip" role="tooltip"><strong>Excelente (1pt)</strong> — Líder altamente capaz, respeitado pelos pares. Membros com dedicação ≥ 50% ao projeto.</div>
+                </button>
+                <button class="opt-btn" data-val="2" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">2</span><span class="opt-label">Boa</span>
+                  <div class="tip" role="tooltip"><strong>Boa (2pts)</strong> — Equipe competente mas com algumas lacunas. Verifique se a dedicação está sendo comprometida.</div>
+                </button>
+                <button class="opt-btn" data-val="3" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">3</span><span class="opt-label">Média</span>
+                  <div class="tip" role="tooltip"><strong>Fraca (3pts)</strong> — Lacunas relevantes de habilidade ou dedicação. Reforce a equipe antes do lançamento.</div>
+                </button>
+                <button class="opt-btn" data-val="4" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">4</span><span class="opt-label">Fraca</span>
+                  <div class="tip" role="tooltip"><strong>Crítico (4pts)</strong> — Equipe inadequada em múltiplas dimensões. O BCG aponta que a qualidade da equipe é o principal preditor de sucesso.</div>
+                </button>
+              </div>
+              <div class="factor-justification" id="just-I">
+                <textarea class="factor-just-input" id="justI" rows="2"
+                          placeholder="Justificativa: ex. líder sênior com 10 anos de experiência em projetos similares…"
+                          aria-label="Justificativa para fator I"></textarea>
+              </div>
+            </div>
+
+            <!-- ── C1 ── -->
+            <div class="factor-row">
+              <div class="factor-label">
+                <span class="factor-tag" aria-hidden="true">C1</span>
+                <span>Compromisso da alta gestão</span>
+                <span class="factor-desc">× 2 no cálculo</span>
+              </div>
+              <div class="factor-options" data-factor="C1" role="radiogroup" aria-label="Compromisso da alta gestão">
+                <button class="opt-btn selected" data-val="1" onclick="selectFactor(this)" role="radio" aria-checked="true">
+                  <span class="opt-num">1</span><span class="opt-label">Muito forte</span>
+                  <div class="tip" role="tooltip"><strong>Excelente (1pt)</strong> — Liderança comunica ativamente. Quando você achar que está falando 3× mais do que precisa, está no nível certo.</div>
+                </button>
+                <button class="opt-btn" data-val="2" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">2</span><span class="opt-label">Favorável</span>
+                  <div class="tip" role="tooltip"><strong>Favorável (2pts)</strong> — Suporte presente e visível, mas poderia ser mais frequente ou explícito.</div>
+                </button>
+                <button class="opt-btn" data-val="3" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">3</span><span class="opt-label">Neutro</span>
+                  <div class="tip" role="tooltip"><strong>Neutro (3pts)</strong> — Postura ambígua envia sinal errado para a organização.</div>
+                </button>
+                <button class="opt-btn" data-val="4" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">4</span><span class="opt-label">Relutante</span>
+                  <div class="tip" role="tooltip"><strong>Crítico (4pts)</strong> — Resistência ou ausência visível do topo. O BCG considera este o fator mais determinante do fracasso.</div>
+                </button>
+              </div>
+              <div class="factor-justification" id="just-C1">
+                <textarea class="factor-just-input" id="justC1" rows="2"
+                          placeholder="Justificativa: ex. diretoria realiza roadshows mensais sobre o projeto…"
+                          aria-label="Justificativa para fator C1"></textarea>
+              </div>
+            </div>
+
+            <!-- ── C2 ── -->
+            <div class="factor-row">
+              <div class="factor-label">
+                <span class="factor-tag" aria-hidden="true">C2</span>
+                <span>Compromisso dos impactados</span>
+              </div>
+              <div class="factor-options" data-factor="C2" role="radiogroup" aria-label="Compromisso dos colaboradores impactados">
+                <button class="opt-btn selected" data-val="1" onclick="selectFactor(this)" role="radio" aria-checked="true">
+                  <span class="opt-num">1</span><span class="opt-label">Ansiosos</span>
+                  <div class="tip" role="tooltip"><strong>Engajados (1pt)</strong> — Colaboradores entusiasmados e apoiam ativamente a iniciativa.</div>
+                </button>
+                <button class="opt-btn" data-val="2" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">2</span><span class="opt-label">Dispostos</span>
+                  <div class="tip" role="tooltip"><strong>Dispostos (2pts)</strong> — Aceitam a mudança, embora sem entusiasmo. Comunicação consistente é fundamental.</div>
+                </button>
+                <button class="opt-btn" data-val="3" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">3</span><span class="opt-label">Relutantes</span>
+                  <div class="tip" role="tooltip"><strong>Relutantes (3pts)</strong> — Resistência presente. O BCG recomenda conversas 1:1 para mapear preocupações.</div>
+                </button>
+                <button class="opt-btn" data-val="4" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">4</span><span class="opt-label">Fort. relut.</span>
+                  <div class="tip" role="tooltip"><strong>Alta resistência (4pts)</strong> — Oposição ativa. Requer plano de gestão da mudança estruturado.</div>
+                </button>
+              </div>
+              <div class="factor-justification" id="just-C2">
+                <textarea class="factor-just-input" id="justC2" rows="2"
+                          placeholder="Justificativa: ex. pesquisa de clima indicou 40% de resistência na área afetada…"
+                          aria-label="Justificativa para fator C2"></textarea>
+              </div>
+            </div>
+
+            <!-- ── E ── -->
+            <div class="factor-row">
+              <div class="factor-label">
+                <span class="factor-tag" aria-hidden="true">E</span>
+                <span>Esforço adicional exigido</span>
+              </div>
+              <div class="factor-options" data-factor="E" role="radiogroup" aria-label="Esforço adicional exigido da equipe">
+                <button class="opt-btn selected" data-val="1" onclick="selectFactor(this)" role="radio" aria-checked="true">
+                  <span class="opt-num">1</span><span class="opt-label">&lt; 10%</span>
+                  <div class="tip" role="tooltip"><strong>Seguro (1pt)</strong> — Menos de 10% de esforço adicional. O BCG recomenda não ultrapassar este limite.</div>
+                </button>
+                <button class="opt-btn" data-val="2" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">2</span><span class="opt-label">10–20%</span>
+                  <div class="tip" role="tooltip"><strong>Gerenciável (2pts)</strong> — Entre 10–20% de esforço extra. Monitore sinais de sobrecarga.</div>
+                </button>
+                <button class="opt-btn" data-val="3" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">3</span><span class="opt-label">20–40%</span>
+                  <div class="tip" role="tooltip"><strong>Alto (3pts)</strong> — Entre 20–40% de esforço adicional. Remova responsabilidades discricionárias.</div>
+                </button>
+                <button class="opt-btn" data-val="4" onclick="selectFactor(this)" role="radio" aria-checked="false">
+                  <span class="opt-num">4</span><span class="opt-label">&gt; 40%</span>
+                  <div class="tip" role="tooltip"><strong>Insustentável (4pts)</strong> — Mais de 40% de carga adicional. Alto risco de burnout e abandono do projeto.</div>
+                </button>
+              </div>
+              <div class="factor-justification" id="just-E">
+                <textarea class="factor-just-input" id="justE" rows="2"
+                          placeholder="Justificativa: ex. equipe com ~15% de horas extras previstas durante implantação…"
+                          aria-label="Justificativa para fator E"></textarea>
+              </div>
+            </div>
+
+          </div><!-- /factor-list -->
+
+          <!-- Bloco de resultado -->
+          <div class="result-block win" id="resultBlock" aria-live="polite" aria-atomic="true">
+            <div class="result-label">Pontuação DICE</div>
+            <div class="result-row" style="display:flex;align-items:center;gap:16px">
+              <div class="result-score" id="scoreNum">7</div>
+              <div class="result-zone-pill" id="zonePill">● WIN</div>
+            </div>
+            <div class="result-msg" id="resultMsg">Alta probabilidade de sucesso. Mantenha a gestão do projeto como está.</div>
+            <div class="formula-row" id="formulaRow" aria-label="Decomposição da fórmula DICE">
+              <span class="formula-chip" id="fD">D=1</span>
+              <span style="opacity:.4" aria-hidden="true">+</span>
+              <span class="formula-chip" id="fI">2×I=2</span>
+              <span style="opacity:.4" aria-hidden="true">+</span>
+              <span class="formula-chip" id="fC1">2×C1=2</span>
+              <span style="opacity:.4" aria-hidden="true">+</span>
+              <span class="formula-chip" id="fC2">C2=1</span>
+              <span style="opacity:.4" aria-hidden="true">+</span>
+              <span class="formula-chip" id="fE">E=1</span>
+              <span style="opacity:.4" aria-hidden="true">=</span>
+              <span class="formula-chip" id="fTotal" style="font-weight:700;color:var(--gold-lt)">7</span>
+            </div>
+          </div>
+
+          <!-- Botões de ação -->
+          <div class="action-row">
+            <button class="btn-main btn-report" onclick="openReport()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Relatório
+            </button>
+            <button class="btn-main" onclick="savePNG()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              PNG
+            </button>
+            <button class="btn-ghost" onclick="resetAll()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+              </svg>
+              Reset
+            </button>
+          </div>
+
+        </div><!-- /card-body -->
+      </div><!-- /card -->
+
+      <!-- Painel do gráfico -->
+      <div class="chart-panel">
+        <div class="card chart-card">
+          <div class="chart-toggle-row">
+            <div style="flex:1">
+              <div class="card-title" style="margin-bottom:4px">Visualização</div>
+              <div class="card-heading">Gráfico DICE</div>
+            </div>
+            <span class="toggle-label" id="toggleLabel">Fundo transparente</span>
+            <label class="toggle-switch" aria-label="Alternar fundo transparente">
+              <input type="checkbox" id="transparentToggle" onchange="update()" aria-labelledby="toggleLabel">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+          <canvas id="diceChart" width="900" height="380"
+                  role="img" aria-label="Gráfico DICE: pontuação 7, zona WIN"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title" style="margin-bottom:16px">Decomposição dos Fatores</div>
+            <div class="breakdown-grid" aria-label="Contribuição de cada fator">
+              <div class="breakdown-item">
+                <div class="bd-key">D</div>
+                <div class="bd-val" id="bdD">1</div>
+                <div class="bd-bar-wrap"><div class="bd-bar-fill" id="barD" style="width:25%"></div></div>
+                <div class="bd-label">Duração</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="bd-key">2×I</div>
+                <div class="bd-val" id="bdI">2</div>
+                <div class="bd-bar-wrap"><div class="bd-bar-fill" id="barI" style="width:25%"></div></div>
+                <div class="bd-label">Integridade</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="bd-key">2×C1</div>
+                <div class="bd-val" id="bdC1">2</div>
+                <div class="bd-bar-wrap"><div class="bd-bar-fill" id="barC1" style="width:25%"></div></div>
+                <div class="bd-label">Alta Gestão</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="bd-key">C2</div>
+                <div class="bd-val" id="bdC2">1</div>
+                <div class="bd-bar-wrap"><div class="bd-bar-fill" id="barC2" style="width:25%"></div></div>
+                <div class="bd-label">Impactados</div>
+              </div>
+              <div class="breakdown-item">
+                <div class="bd-key">E</div>
+                <div class="bd-val" id="bdE">1</div>
+                <div class="bd-bar-wrap"><div class="bd-bar-fill" id="barE" style="width:25%"></div></div>
+                <div class="bd-label">Esforço</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /chart-panel -->
+
+    </div><!-- /analyzer-grid -->
+  </div><!-- /view-analyzer -->
+
+
+  <!-- ══════════════ VIEW: GUIA ══════════════ -->
+  <div class="view" id="view-guide" role="tabpanel">
+
+    <div class="guide-hero">
+      <div class="guide-hero-tag">Sobre o DICE Model</div>
+      <div class="guide-hero-title">A Dimensão Difícil da Gestão de Mudanças</div>
+      <div class="guide-hero-text">
+        O DICE foi desenvolvido pelo <strong>Boston Consulting Group (BCG)</strong> a partir de um estudo iniciado em 1992 com <strong>225 iniciativas de mudança</strong> em múltiplos setores e países. A análise revelou que dois em cada três programas de transformação falham — e que quatro fatores "duros" predizem o resultado com consistência estatística superior a qualquer combinação de fatores alternativos testada.<br><br>
+        O modelo foi publicado por Sirkin, Keenan e Jackson na <em>Harvard Business Review</em> em outubro de 2005.
+      </div>
+    </div>
+
+    <div class="guide-hero" style="margin-top:0">
+      <div class="guide-hero-tag">A Fórmula DICE</div>
+      <div class="guide-hero-title">Cálculo</div>
+      <div class="guide-hero-text">
+        <span style="font-family:var(--serif);font-size:22px;color:var(--gold-lt);letter-spacing:.03em;font-weight:600">DICE = D + (2 × I) + (2 × C1) + C2 + E</span><br><br>
+        Score mínimo: <strong>7</strong> (todos = 1) · Score máximo: <strong>28</strong> (todos = 4). Quanto <em>menor</em> o score, melhor.
+      </div>
+    </div>
+
+    <div class="guide-zones-grid">
+      <div class="guide-zone-card win">
+        <div class="guide-zone-label">WIN · Zona de Sucesso</div>
+        <span class="zone-range">7 – 14</span>
+        <div style="color:var(--muted);font-size:13px;line-height:1.7">Alta probabilidade estatística de sucesso. Mantenha o monitoramento e documente as boas práticas.</div>
+      </div>
+      <div class="guide-zone-card worry">
+        <div class="guide-zone-label">WORRY · Zona de Atenção</div>
+        <span class="zone-range">15 – 17</span>
+        <div style="color:var(--muted);font-size:13px;line-height:1.7">Resultado imprevisível. Identifique os fatores mais elevados e intervenha de forma direcionada.</div>
+      </div>
+      <div class="guide-zone-card woe">
+        <div class="guide-zone-label">WOE · Zona de Perigo</div>
+        <span class="zone-range">18 – 28</span>
+        <div style="color:var(--muted);font-size:13px;line-height:1.7">Alta probabilidade de fracasso. Scores acima de 19 exigem reestruturação profunda antes de prosseguir.</div>
+      </div>
+    </div>
+
+    <div class="guide-hero" style="margin-top:0;border-color:rgba(196,163,90,0.2)">
+      <div class="guide-hero-tag">Referência Acadêmica</div>
+      <div class="guide-hero-title">Artigo Original</div>
+      <div class="guide-hero-text">
+        Sirkin, H. L., Keenan, P., &amp; Jackson, A. (2005). <em>The Hard Side of Change Management.</em> Harvard Business Review, 83(10), 108–118.<br><br>
+        <a href="https://hbr.org/2005/10/the-hard-side-of-change-management" target="_blank" rel="noopener"
+           style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(196,163,90,0.4);padding-bottom:1px;font-size:13px">
+          → Acessar artigo na HBR &nbsp;↗
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /view-guide -->
+
+</div><!-- /app -->
+
+<!-- Modal de Relatório -->
+<div class="modal-overlay" id="reportModal"
+     role="dialog" aria-modal="true" aria-labelledby="modalTitleId">
+  <div class="modal" id="reportModalContent" tabindex="-1">
+    <!-- Conteúdo injetado via js/modal.js -->
+  </div>
+</div>
+
+<!-- Banner de popup bloqueado -->
+<div class="popup-banner" id="popupBanner" role="alert" aria-live="assertive">
+  <span>⚠️ Popups bloqueados. Permita popups para este site e tente novamente.</span>
+  <button class="popup-banner-retry" id="popupRetry">Tentar novamente</button>
+  <button class="popup-banner-close" onclick="dismissPopupBanner()" aria-label="Fechar aviso">×</button>
+</div>
+
+<!-- Toast de notificação -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══ Scripts — ordem de dependência ══ -->
+<script src="js/state.js"></script>
+<script src="js/data.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/export.js"></script>
+
+</body>
+</html>
