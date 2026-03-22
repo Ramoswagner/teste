@@ -286,10 +286,6 @@ function _assemblePDFDocument(p) {
   <div class="sec">Análise por Fator — com justificativa do gestor</div>
   ${factorTableHtml}
 
-  <div class="pfooter">
-    <div class="pfooter-l">DICE Framework · ${projectName} · ${nowShort} · ID: ${reportId}</div>
-    <div class="pfooter-r">WR</div>
-  </div>
 </div>
 
 
@@ -324,10 +320,14 @@ function _assemblePDFDocument(p) {
     </div>
   </div>
 
-  <div class="pfooter">
-    <div class="pfooter-l">DICE Framework · ${projectName} · ${nowShort} · Wagner Ramos — PMO &amp; BI</div>
-    <div class="pfooter-r">WR</div>
-  </div>
+</div>
+
+<!-- Rodapé running — position:fixed em @media print repete em todas as páginas.
+     A capa tem z-index:2 e background navy, enterrando visualmente o rodapé na
+     página 1. Páginas 2 e 3 têm fundo branco → rodapé sempre visível nelas. -->
+<div class="doc-footer">
+  <div class="doc-footer-l">DICE Framework &nbsp;·&nbsp; ${projectName} &nbsp;·&nbsp; ${nowShort} &nbsp;·&nbsp; Wagner Ramos — PMO &amp; BI &nbsp;·&nbsp; ID: ${reportId}</div>
+  <div class="doc-footer-r">WR</div>
 </div>
 
 <script>
@@ -363,6 +363,7 @@ html,body{
 .cover{
   width:210mm;height:297mm;background:#0B1E33;
   position:relative;overflow:hidden;
+  z-index:2; /* sits above the fixed footer — navy bg hides it on page 1 */
   page-break-after:always;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
@@ -413,12 +414,11 @@ html,body{
    PÁGINAS DE CONTEÚDO
    ───────────────────────────────────────── */
 .page{
-  width:210mm;padding:12mm 13mm 13mm;position:relative;
-  /* Clona padding/border em cada fragmento de página.
-     Sem isso, o padding-top 12mm só aparece na 1ª página do div;
-     quando uma tabela quebra no meio, a continuação fica sem margem. */
+  width:210mm;padding:12mm 13mm 16mm;position:relative;
+  /* Clona padding/border em cada fragmento de página. */
   box-decoration-break:clone;
   -webkit-box-decoration-break:clone;
+  /* padding-bottom:16mm reserva espaço para o rodapé running */
 }
 
 .pheader{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:3.5mm;margin-bottom:5mm;border-bottom:2px solid #0B1E33}
@@ -497,9 +497,35 @@ html,body{
    sozinho como 1ª linha de nova página.
    Corrige o bug do órfão relatado.
    ───────────────────────────────────────── */
-.pfooter{margin-top:5mm;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #E5E7EB;padding-top:2mm;break-before:avoid;page-break-before:avoid}
-.pfooter-l{font-size:6.5px;color:#9CA3AF;letter-spacing:.04em}
-.pfooter-r{font-family:'Cormorant Garamond',serif;font-size:9pt;font-weight:700;color:#C4A35A;letter-spacing:.14em}
+/* ─────────────────────────────────────────
+   RODAPÉ RUNNING — position:fixed em print
+   repete em todas as páginas automaticamente.
+   z-index:1 fica abaixo da capa (z-index:2):
+   o background navy enterra o rodapé na pág 1.
+   background:white garante que o rodapé cobre
+   o conteúdo da página abaixo dele (sem sobreposição).
+   ───────────────────────────────────────── */
+@media print{
+  .doc-footer{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    z-index:1;
+    height:10mm;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 13mm;
+    background:#fff;
+    border-top:1px solid #E5E7EB;
+    box-sizing:border-box;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+}
+/* Também visível no preview de tela */
+.doc-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:2mm 13mm;border-top:1px solid #E5E7EB;margin-top:4mm;
+}
+.doc-footer-l{font-size:6.5px;color:#9CA3AF;letter-spacing:.04em}
+.doc-footer-r{font-family:'Cormorant Garamond',serif;font-size:9pt;font-weight:700;color:#C4A35A;letter-spacing:.14em}
 
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
