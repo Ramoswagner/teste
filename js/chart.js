@@ -67,10 +67,12 @@ function drawChart(score) {
 
   // Margens responsivas: menores em telas estreitas
   const mobile = W < 500;
-  const ML = mobile ? 52  : 120;   // espaço para labels Y
+  // ML e MR equilibrados em mobile: diferença de só 8px
+  // evita que o conteúdo pareça deslocado para a direita do centro
+  const ML = mobile ? 36  : 120;
   const MR = mobile ? 8   : 20;
   const MT = mobile ? 24  : 50;
-  const MB = mobile ? 30  : 50;
+  const MB = mobile ? 28  : 50;
   const PW = W - ML - MR;
   const PH = H - MT - MB;
 
