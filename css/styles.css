@@ -237,7 +237,7 @@ body::before {
 .toggle-switch input:checked + .toggle-track { background: linear-gradient(135deg, var(--gold), var(--gold-lt)); border-color: transparent; }
 .toggle-switch input:checked + .toggle-track::after { left: 21px; background: white; box-shadow: 0 0 10px white; }
 
-canvas#diceChart  { width: 100%; height: auto; border-radius: 12px; background: rgba(11,30,51,0.3); }
+canvas#diceChart  { width: 100%; aspect-ratio: 900 / 380; border-radius: 12px; background: rgba(11,30,51,0.3); display: block; }
 
 /* ── Breakdown ── */
 .breakdown-grid   { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-top: 8px; }
@@ -420,13 +420,46 @@ canvas#diceChart  { width: 100%; height: auto; border-radius: 12px; background: 
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
+  /* Layout principal */
   .analyzer-grid,
-  .guide-zones-grid     { grid-template-columns: 1fr; }
-  .header               { padding: 0 16px; }
-  .app                  { padding: 16px; }
-  .breakdown-grid       { grid-template-columns: repeat(2,1fr); }
+  .guide-zones-grid       { grid-template-columns: 1fr; }
+  .header                 { padding: 0 16px; }
+  .app                    { padding: 16px; }
+
+  /* Breakdown: 3 colunas no mobile para caber os 5 itens sem órfão */
+  .breakdown-grid         { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  /* O 5º item (E) expande para preencher a última linha */
+  .breakdown-item:last-child { grid-column: 2 / 3; }
+
+  /* Modal */
   .metrics-grid,
-  .factors-academic-grid { grid-template-columns: 1fr; }
+  .factors-academic-grid  { grid-template-columns: 1fr; }
+
+  /* Guia: colapsa todas as grids multi-coluna */
+  .guide-factors-grid     { grid-template-columns: 1fr; }
+  .guide-uses-grid        { grid-template-columns: 1fr; }
+
+  /* Tabela de score: esconde coluna de interpretação no mobile */
+  .guide-score-table th:last-child,
+  .guide-score-table td:last-child { display: none; }
+
+  /* Referência: meta em coluna */
+  .guide-ref-meta         { flex-direction: column; gap: 12px; }
+
+  /* Chart toggle: empilha em mobile muito estreito */
+  .chart-toggle-row       { flex-wrap: wrap; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  /* Mobile pequeno: breakdown em 2 colunas + 5º item centralizado */
+  .breakdown-grid         { grid-template-columns: repeat(2, 1fr); }
+  .breakdown-item:last-child { grid-column: 1 / -1; }
+
+  /* Card do fator E (full) */
+  .guide-factor-card.full > div[style] { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Referência: links em coluna */
+  .guide-ref-links        { flex-direction: column; gap: 10px; }
 }
 
 /* ── Acessibilidade: respeita prefers-reduced-motion ── */
