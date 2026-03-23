@@ -52,6 +52,8 @@ function setupCanvas(canvas) {
 
 /**
  * Desenha o gráfico DICE completo no canvas.
+ * Margens e labels são adaptados ao tamanho real do canvas
+ * para funcionar corretamente em mobile.
  * @param {number} score - score atual (7–28)
  */
 // eslint-disable-next-line no-unused-vars
@@ -62,18 +64,32 @@ function drawChart(score) {
   const setup = setupCanvas(canvas);
   if (!setup) return; // canvas não tem dimensões ainda — aguarda ResizeObserver
   const { ctx, W, H } = setup;
-  ctx.clearRect(0, 0, W, H);
 
-  const transparent = document.getElementById('transparentToggle')?.checked ?? false;
-  const ML = 120, MR = 20, MT = 50, MB = 50;
+  // Margens responsivas: menores em telas estreitas
+  const mobile = W < 500;
+  const ML = mobile ? 52  : 120;   // espaço para labels Y
+  const MR = mobile ? 8   : 20;
+  const MT = mobile ? 24  : 50;
+  const MB = mobile ? 30  : 50;
   const PW = W - ML - MR;
   const PH = H - MT - MB;
+
+  // Em mobile, mostra apenas labels ímpares no eixo X (7,9,11…)
+  const xStep = mobile ? 3 : 1;
+  // Font size responsivo
+  const fzAxis  = mobile ? '9px'  : '11px';
+  const fzLabel = mobile ? '9px'  : '11px';
 
   // Conversores de coordenadas do modelo → pixels
   const px = x => ML + (x - 7) / 21 * PW;
   const py = y => MT + (1 - y / 5) * PH;
 
+  // Reset completo antes de desenhar (evita artefatos de globalAlpha acumulado)
+  ctx.clearRect(0, 0, W, H);
+  ctx.globalAlpha = 1;
+
   // ── Fundo ──
+  const transparent = document.getElementById('transparentToggle')?.checked ?? false;
   if (!transparent) {
     ctx.fillStyle = '#0B1E33';
     ctx.fillRect(0, 0, W, H);
@@ -85,67 +101,55 @@ function drawChart(score) {
   }
 
   // ── Polígonos de zona ──
-  _drawZonePolygons(ctx, px, py, transparent);
+  _drawZonePolygons(ctx, px, py);
 
   // ── Barra de labels inferior ──
   const bh = PH * (0.6 / 5);
   const by = py(0) - bh;
-  _drawZoneBar(ctx, px, by, bh, transparent);
+  _drawZoneBar(ctx, px, by, bh, transparent, fzLabel);
 
   // ── Separadores verticais de zona ──
   _drawZoneDividers(ctx, px, py, transparent);
 
   // ── Grid de eixos ──
-  _drawGrid(ctx, px, py, ML, PW, transparent);
+  _drawGrid(ctx, px, py, ML, PW, transparent, fzAxis, xStep);
 
-  // ── Marcador do score (elevado para não colidir com barra) ──
-  _drawScoreMarker(ctx, px, py, score, by);
+  // ── Marcador do score ──
+  _drawScoreMarker(ctx, px, py, score, by, mobile);
 }
 
 // ─────────────────── Funções auxiliares de desenho ───────────────────
 
-function _drawZonePolygons(ctx, px, py, transparent) {
+function _drawZonePolygons(ctx, px, py) {
+  // Salva e restaura o estado: garante que globalAlpha não vaza
+  ctx.save();
+
   ctx.globalAlpha = 0.65;
-
-  // WIN
   ctx.beginPath();
-  ctx.moveTo(px(7),  py(5));
-  ctx.lineTo(px(14), py(5));
-  ctx.lineTo(px(14), py(4));
-  ctx.lineTo(px(9),  py(4));
+  ctx.moveTo(px(7), py(5)); ctx.lineTo(px(14), py(5));
+  ctx.lineTo(px(14), py(4)); ctx.lineTo(px(9), py(4));
   ctx.closePath();
-  ctx.fillStyle = '#03A63C';
-  ctx.fill();
+  ctx.fillStyle = '#03A63C'; ctx.fill();
 
-  // WORRY
   ctx.beginPath();
-  ctx.moveTo(px(14), py(5));
-  ctx.lineTo(px(17), py(5));
-  ctx.lineTo(px(17), py(1.75));
-  ctx.lineTo(px(14), py(4));
+  ctx.moveTo(px(14), py(5)); ctx.lineTo(px(17), py(5));
+  ctx.lineTo(px(17), py(1.75)); ctx.lineTo(px(14), py(4));
   ctx.closePath();
-  ctx.fillStyle = '#F2B705';
-  ctx.fill();
+  ctx.fillStyle = '#F2B705'; ctx.fill();
 
   ctx.globalAlpha = 0.55;
-
-  // WOE
   ctx.beginPath();
-  ctx.moveTo(px(17), py(5));
-  ctx.lineTo(px(18), py(5));
-  ctx.lineTo(px(21), py(3));
-  ctx.lineTo(px(25), py(3));
-  ctx.lineTo(px(28), py(1));
-  ctx.lineTo(px(18), py(1));
+  ctx.moveTo(px(17), py(5)); ctx.lineTo(px(18), py(5));
+  ctx.lineTo(px(21), py(3)); ctx.lineTo(px(25), py(3));
+  ctx.lineTo(px(28), py(1)); ctx.lineTo(px(18), py(1));
   ctx.lineTo(px(17), py(1.75));
   ctx.closePath();
-  ctx.fillStyle = '#F25C5C';
-  ctx.fill();
+  ctx.fillStyle = '#F25C5C'; ctx.fill();
 
-  ctx.globalAlpha = 1;
+  ctx.restore(); // globalAlpha volta a 1
 }
 
-function _drawZoneBar(ctx, px, by, bh, transparent) {
+function _drawZoneBar(ctx, px, by, bh, transparent, fzLabel) {
   ctx.fillStyle = '#03A63C';
   ctx.fillRect(px(7),  by, px(14) - px(7),  bh);
   ctx.fillStyle = '#F2B705';
@@ -153,10 +157,10 @@ function _drawZoneBar(ctx, px, by, bh, transparent) {
   ctx.fillStyle = '#F25C5C';
   ctx.fillRect(px(17), by, px(28) - px(17), bh);
 
-  ctx.font = 'bold 11px "Cormorant Garamond",serif';
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle    = transparent ? 'rgba(255,255,255,0.9)' : '#fff';
+  ctx.font          = `bold ${fzLabel} "Cormorant Garamond",serif`;
+  ctx.textAlign     = 'center';
+  ctx.textBaseline  = 'middle';
+  ctx.fillStyle     = transparent ? 'rgba(255,255,255,0.9)' : '#fff';
   ctx.fillText('WIN',   px(10.5), by + bh / 2);
   ctx.fillText('WORRY', px(15.5), by + bh / 2);
   ctx.fillText('WOE',   px(22.5), by + bh / 2);
@@ -174,36 +178,40 @@ function _drawZoneDividers(ctx, px, py, transparent) {
   ctx.restore();
 }
 
-function _drawGrid(ctx, px, py, ML, PW, transparent) {
+function _drawGrid(ctx, px, py, ML, PW, transparent, fzAxis, xStep) {
   const tc = transparent ? 'rgba(200,210,230,0.85)' : '#8A9BB5';
   const gc = transparent ? 'rgba(255,255,255,0.1)'  : 'rgba(255,255,255,0.05)';
 
-  // Eixo Y
-  ctx.font          = '11px "Inter",sans-serif';
+  // Eixo Y — labels apenas em 0, 2, 4 em mobile para não poluir
+  ctx.font          = `${fzAxis} "Inter",sans-serif`;
   ctx.textAlign     = 'right';
   ctx.textBaseline  = 'middle';
   ctx.fillStyle     = tc;
   for (let y = 0; y <= 5; y++) {
     const yy = py(y);
-    ctx.fillText(y, ML - 10, yy);
-    ctx.save();
-    ctx.strokeStyle = gc; ctx.lineWidth = 1;
+    if (xStep > 1 && y % 2 !== 0) { // mobile: só pares
+      ctx.save(); ctx.strokeStyle = gc; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(ML, yy); ctx.lineTo(ML + PW, yy); ctx.stroke();
+      ctx.restore();
+      continue;
+    }
+    ctx.fillText(y, ML - 6, yy);
+    ctx.save(); ctx.strokeStyle = gc; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(ML, yy); ctx.lineTo(ML + PW, yy); ctx.stroke();
     ctx.restore();
   }
 
-  // Eixo X
+  // Eixo X — pula labels conforme xStep para evitar sobreposição
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'top';
   ctx.fillStyle    = tc;
   for (let x = 7; x <= 28; x++) {
     const xx = px(x);
-    ctx.fillText(x, xx, py(0) + 6);
-    ctx.save();
-    ctx.strokeStyle = transparent ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)';
-    ctx.lineWidth   = 1;
-    ctx.beginPath(); ctx.moveTo(xx, py(0)); ctx.lineTo(xx, py(0) + 4); ctx.stroke();
+    ctx.save(); ctx.strokeStyle = transparent ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xx, py(0)); ctx.lineTo(xx, py(0) + 3); ctx.stroke();
     ctx.restore();
+    if ((x - 7) % xStep === 0) ctx.fillText(x, xx, py(0) + 5);
   }
 }
 
@@ -225,32 +233,31 @@ function _drawGrid(ctx, px, py, ML, PW, transparent) {
   observer.observe(canvas);
 })();
 
-function _drawScoreMarker(ctx, px, py, score, by) {
+function _drawScoreMarker(ctx, px, py, score, by, mobile) {
   const xm = px(score);
-  const yd = py(1.5); // elevado para não colidir com a barra de labels
+  const yd = py(1.5);
+  const r  = mobile ? 5 : 7;
+  const fz = mobile ? '9px' : '12px';
 
-  // Linha vertical tracejada
   ctx.save();
-  ctx.shadowColor  = 'rgba(196,163,90,0.9)';
-  ctx.shadowBlur   = 15;
-  ctx.strokeStyle  = 'rgba(255,255,255,0.9)';
-  ctx.lineWidth    = 1.5;
+  ctx.shadowColor = 'rgba(196,163,90,0.9)';
+  ctx.shadowBlur  = mobile ? 8 : 15;
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth   = 1.5;
   ctx.setLineDash([3, 3]);
   ctx.beginPath(); ctx.moveTo(xm, py(5)); ctx.lineTo(xm, by); ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
 
-  // Círculo dourado
   ctx.beginPath();
-  ctx.arc(xm, yd, 7, 0, Math.PI * 2);
-  ctx.fillStyle    = '#D8B87A';
-  ctx.shadowColor  = '#D8B87A';
-  ctx.shadowBlur   = 15;
+  ctx.arc(xm, yd, r, 0, Math.PI * 2);
+  ctx.fillStyle   = '#D8B87A';
+  ctx.shadowColor = '#D8B87A';
+  ctx.shadowBlur  = mobile ? 8 : 15;
   ctx.fill();
-  ctx.shadowBlur   = 0;
+  ctx.shadowBlur  = 0;
 
-  // Label de score dentro do círculo
-  ctx.font          = 'bold 12px "Inter",sans-serif';
+  ctx.font          = `bold ${fz} "Inter",sans-serif`;
   ctx.textAlign     = 'center';
   ctx.textBaseline  = 'middle';
   ctx.fillStyle     = '#0B1E33';
